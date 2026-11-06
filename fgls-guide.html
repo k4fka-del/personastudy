@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hướng dẫn sử dụng Node FGLS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 p-4 sm:p-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <!-- Header -->
+        <div class="bg-blue-600 px-6 py-6 sm:px-8 sm:py-8 text-white">
+            <div class="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/-svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                <h1 class="text-2xl sm:text-3xl font-bold">Hướng dẫn cấu hình Node FGLS</h1>
+            </div>
+            <p class="text-blue-100 mt-2 text-sm sm:text-base">Feasible Generalized Least Squares cho Dữ liệu bảng (Panel Data)</p>
+        </div>
+        
+        <div class="p-6 sm:p-8 space-y-10">
+            <!-- 1. Tổng quan -->
+            <section>
+                <h2 class="text-xl font-bold border-b pb-3 mb-5 text-slate-800 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-700 w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span>
+                    Tổng quan về FGLS
+                </h2>
+                <p class="leading-relaxed text-slate-600 text-justify">
+                    Nút <strong>FGLS (Phương pháp bình phương tối thiểu tổng quát khả thi)</strong> cung cấp một kỹ thuật nâng cao dành cho dữ liệu bảng (Panel Data). Bạn nên cân nhắc sử dụng phương pháp này khi các mô hình cơ bản (như OLS hay FEM/REM) vi phạm các giả định thống kê nghiêm trọng. Cụ thể, thuật toán bên dưới (ước lượng Parks-Kmenta) giúp mô hình của bạn khắc phục các lỗi sau để cho ra hệ số ước lượng đáng tin cậy hơn:
+                </p>
+                <div class="grid sm:grid-cols-3 gap-4 mt-5">
+                    <div class="bg-red-50 border border-red-100 p-4 rounded-lg text-sm">
+                        <strong class="text-red-700 block mb-1">Heteroskedasticity</strong>
+                        <span class="text-slate-600">Phương sai sai số bị thay đổi.</span>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-100 p-4 rounded-lg text-sm">
+                        <strong class="text-amber-700 block mb-1">Serial Correlation</strong>
+                        <span class="text-slate-600">Sai số có tính tự tương quan nối tiếp theo thời gian.</span>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-100 p-4 rounded-lg text-sm">
+                        <strong class="text-purple-700 block mb-1">Cross-sectional Dependence</strong>
+                        <span class="text-slate-600">Sự phụ thuộc chéo giữa các thực thể trong bảng.</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Giải thích tham số -->
+            <section>
+                <h2 class="text-xl font-bold border-b pb-3 mb-5 text-slate-800 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-700 w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span>
+                    Ý nghĩa các cấu hình (Settings)
+                </h2>
+                
+                <div class="space-y-5 text-sm sm:text-base">
+                    <!-- Biến Y & X -->
+                    <div class="grid sm:grid-cols-2 gap-5">
+                        <div class="bg-slate-50 p-5 rounded-lg border border-slate-200 shadow-sm">
+                            <h3 class="font-bold text-slate-800 mb-2 flex items-center gap-1">
+                                Dependent Variable (Y) <span class="text-red-500">*</span>
+                            </h3>
+                            <p class="text-slate-600">Chọn biến mục tiêu (biến phụ thuộc) mà mô hình đang cần giải thích sự biến thiên.</p>
+                        </div>
+
+                        <div class="bg-slate-50 p-5 rounded-lg border border-slate-200 shadow-sm">
+                            <h3 class="font-bold text-slate-800 mb-2 flex items-center gap-1">
+                                Independent Variables (X) <span class="text-red-500">*</span>
+                            </h3>
+                            <p class="text-slate-600">Lựa chọn một hoặc nhiều biến giải thích (biến độc lập). Đây là các yếu tố dự báo.</p>
+                        </div>
+                    </div>
+
+                    <!-- Entity & Time -->
+                    <div class="grid sm:grid-cols-2 gap-5">
+                        <div class="bg-slate-50 p-5 rounded-lg border border-slate-200 shadow-sm">
+                            <h3 class="font-bold text-slate-800 mb-2 flex items-center gap-1">
+                                Entity Variable (i) <span class="text-red-500">*</span>
+                            </h3>
+                            <p class="text-slate-600">Biến định danh cho đối tượng cắt ngang. <br><span class="italic text-xs text-slate-400">VD: Tên công ty, Mã quốc gia, Cổ phiếu...</span></p>
+                        </div>
+
+                        <div class="bg-slate-50 p-5 rounded-lg border border-slate-200 shadow-sm">
+                            <h3 class="font-bold text-slate-800 mb-2 flex items-center gap-1">
+                                Time Variable (t) <span class="text-red-500">*</span>
+                            </h3>
+                            <p class="text-slate-600">Biến định danh cho chu kỳ thời gian. <br><span class="italic text-xs text-slate-400">VD: Năm, Quý, Tháng...</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Nâng cao -->
+                    <div class="bg-slate-50 p-5 rounded-lg border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-3">Effect Type (Loại hiệu ứng)</h3>
+                        <p class="text-slate-600 mb-3">Quyết định chiều nào sẽ có "hiệu ứng" được xem xét trong phương pháp ước lượng.</p>
+                        <ul class="list-disc pl-5 space-y-1 text-slate-600">
+                            <li><strong>Individual:</strong> Chỉ kiểm soát các đặc trưng không quan sát được theo từng thực thể (Tùy chọn phổ biến nhất).</li>
+                            <li><strong>Time:</strong> Chỉ kiểm soát các cú sốc chung theo chiều thời gian.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-slate-50 p-5 rounded-lg border border-slate-200 shadow-sm border-l-4 border-l-blue-500">
+                        <h3 class="font-bold text-slate-800 mb-3">FGLS Model Type</h3>
+                        <p class="text-slate-600 mb-3">Tham số quan trọng quyết định cách dữ liệu được biến đổi trước khi áp dụng thuật toán FGLS tính ma trận phương sai:</p>
+                        <ul class="space-y-3">
+                            <li class="bg-white p-3 rounded border border-slate-100">
+                                <strong>Within (FE-GLS)</strong> <span class="ml-2 inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Khuyên dùng</span>
+                                <p class="text-slate-600 text-sm mt-1">Dữ liệu được xử lý loại bỏ trung bình nhóm (Fixed Effects). Phù hợp nếu thực thể của bạn có các yếu tố đặc thù cố định theo thời gian.</p>
+                            </li>
+                            <li class="bg-white p-3 rounded border border-slate-100">
+                                <strong>Pooling (Pooled OLS)</strong>
+                                <p class="text-slate-600 text-sm mt-1">Gộp toàn bộ dữ liệu, không kiểm soát hiệu ứng cố định. Thường dùng nếu kết quả kiểm định Hausman hay Breusch-Pagan LM cho thấy không có hiệu ứng bảng.</p>
+                            </li>
+                            <li class="bg-white p-3 rounded border border-slate-100">
+                                <strong>FD (First Difference)</strong>
+                                <p class="text-slate-600 text-sm mt-1">Lấy sai phân bậc 1 của các chuỗi. Dùng khi dữ liệu có xu hướng ngẫu nhiên (chứa nghiệm đơn vị) hoặc tính chất không dừng (Non-stationary).</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. Đọc Output -->
+            <section>
+                <h2 class="text-xl font-bold border-b pb-3 mb-5 text-slate-800 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-700 w-8 h-8 rounded-full flex items-center justify-center text-sm">3</span>
+                    Cách diễn giải Output
+                </h2>
+                <div class="bg-slate-800 rounded-lg p-5 text-slate-300 shadow-inner overflow-x-auto font-mono text-xs sm:text-sm mb-4">
+<pre><code>Coefficients:
+             Estimate Std. Error z-value  Pr(>|z|)    
+(Intercept)  1.23456    0.11111   11.11  < 2e-16 ***
+X1          -0.54321    0.22222   -2.44   0.0145 *  
+X2           0.98765    0.33333    2.96   0.0031 ** </code></pre>
+                </div>
+                <ul class="list-disc pl-6 space-y-3 text-slate-600">
+                    <li><strong>Estimate (Hệ số ước lượng):</strong> Dấu dương (+) nghĩa là X tác động thuận chiều lên Y. Dấu âm (-) nghĩa là X tác động ngược chiều lên Y.</li>
+                    <li><strong>Pr(>|z|) hay p-value:</strong> Cột quan trọng nhất. Nếu p-value &lt; 0.05, ta nói rằng biến có tác động mang tính ý nghĩa thống kê (ở mức 5%). Số lượng dấu <code>*</code> càng nhiều thì ý nghĩa càng cao.</li>
+                    <li><em>Lưu ý:</em> Do FGLS đã điều chỉnh sai số, các hệ số chuẩn (Std. Error) thường sẽ nhỏ hơn (hiệu quả hơn) so với chạy mô hình OLS truyền thống trên cùng bộ dữ liệu.</li>
+                </ul>
+            </section>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/personastudy/favicon.png?v=6" />
+    <link rel="apple-touch-icon" href="/personastudy/favicon.png?v=6" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PersonaStudy — học tập cá nhân hóa</title>
+    <meta name="description" content="PersonaStudy — app học tập cá nhân hóa trên máy của bạn." />
+    <script type="module" crossorigin src="/personastudy/assets/index-CSkoBDi9.js"></script>
+    <link rel="modulepreload" crossorigin href="/personastudy/assets/flow-XoApgbKy.js">
+    <link rel="stylesheet" crossorigin href="/personastudy/assets/statnode.css">
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script>
+      (function () {
+        var key = 'statnode-css-recover';
+        window.addEventListener('load', function () {
+          var sheet = document.querySelector('link[rel="stylesheet"][href*="/assets/"]');
+          if (!sheet) {
+            sheet = document.createElement('link');
+            sheet.rel = 'stylesheet';
+            sheet.href = '/personastudy/assets/statnode.css';
+            document.head.appendChild(sheet);
+          }
+          try {
+            var loaded = Array.from(document.styleSheets).some(function (styleSheet) {
+              return styleSheet.href === sheet.href && styleSheet.cssRules && styleSheet.cssRules.length > 0;
+            });
+            if (!loaded && !sessionStorage.getItem(key)) {
+              sessionStorage.setItem(key, '1');
+              location.reload();
+              return;
+            }
+            if (loaded) sessionStorage.removeItem(key);
+          } catch (error) {
+            if (!sessionStorage.getItem(key)) {
+              sessionStorage.setItem(key, '1');
+              location.reload();
+            }
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
